@@ -10,13 +10,14 @@ cargo {
     libname = "sharedlib"          // Or whatever matches Cargo.toml's [package] name.
     targets = ["x86_64", "arm64", "x86", "arm"] // Could also include x86, arm, etc. (Whatever supported by rust)
     profile = 'debug'
-    pythonCommand = 'python3'
+    pythonCommand = 'python'
     targetDirectory = "$projectDir/../../../target"
 }
 // [uniffi change] END
 android {
     namespace 'com.example.rustkotlindemo'
     compileSdk 33
+//    ndkPath System.getenv("ANDROID_NDK") + "/23.1.7779620"
 
     defaultConfig {
         applicationId "com.example.rustkotlindemo"
@@ -59,6 +60,12 @@ android {
 
 dependencies {
 
+
+//    implementation fileTree(dir: "$projectDir/../../../target/debug", include: ['*.so'])
+//    implementation fileTree(dir: "$projectDir/app/jniLibs", include: ['*.so'])
+
+    // add the shared library as a dependency jniLibs
+
     implementation 'androidx.core:core-ktx:1.9.0'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.2'
     implementation 'androidx.activity:activity-compose:1.7.2'
@@ -75,7 +82,7 @@ dependencies {
     debugImplementation 'androidx.compose.ui:ui-tooling'
     debugImplementation 'androidx.compose.ui:ui-test-manifest'
     // [uniffi change] START: (<
-    implementation "net.java.dev.jna:jna:5.7.0@aar" // we need this for Java Native Access
+    implementation "net.java.dev.jna:jna:5.14.0@aar" // we need this for Java Native Access
     // Reference: <https://mozilla.github.io/uniffi-rs/kotlin/gradle.html#jna-dependency>
     // [uniffi change] END
 }
