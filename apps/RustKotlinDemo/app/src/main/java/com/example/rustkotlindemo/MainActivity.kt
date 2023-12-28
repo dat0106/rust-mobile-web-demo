@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -24,6 +25,8 @@ import androidx.compose.ui.unit.dp
 
 import com.example.rustkotlindemo.ui.theme.RustKotlinDemoTheme
 import uniffi.SharedLib.add
+import uniffi.SharedLib.index
+import uniffi.SharedLib.tokenize
 
 class MainActivity : ComponentActivity() {
     init {
@@ -53,6 +56,7 @@ fun ContentViewSimple() {
     // simple add op only calculate by adding a and b
     val valueA = remember { mutableStateOf(0) }
     val valueB = remember { mutableStateOf(0) }
+    val valueString = remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -86,10 +90,41 @@ fun ContentViewSimple() {
                 }
             )
         }
-        Text(text = "a + b = ${add(valueA.value, valueB.value)}")
+        Text(text = "a + b = ${addStatic(valueA.value, valueB.value)}")
+
+        // add space
+        Spacer(modifier = Modifier.padding(8.dp))
+        Row(
+            modifier = Modifier
+                .padding(vertical = 8.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(text = "String:")
+            TextField(
+                value = valueString.value,
+                onValueChange = { value ->
+                    valueString.value = value
+                },
+            )
+        }
+
+        Text(text = "tokenized = ${tokenized(valueString.value)}")
+        Text(text = "tokenized = ${tokenize(valueString.value)}")
+
     }
+
 }
 
+fun tokenized(value: String): String {
+    return index(value.length.toULong(), value)
+//    return 1.toString()
+}
+
+fun addStatic(a: Int, b: Int): Int {
+//    return add(a, b)
+    return a + b
+}
 @Preview(showBackground = true)
 @Composable
 fun ContentViewSimplePreview() {

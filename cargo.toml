@@ -10,6 +10,8 @@ members = [
 
 [workspace.dependencies]
 uniffi = "0.24.3"
+uniffi_bindgen = { version = "0.24.3" }
+
 
 [workspace.build-dependencies]
 uniffi = { version = "0.24.3", features = ["build", "cli"] }

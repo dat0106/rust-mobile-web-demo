@@ -56,13 +56,29 @@ android {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
         }
     }
+    ndkVersion '23.1.7779620'
+//    sourceSets {
+//        main {
+//            jni {
+//                srcDirs  'src\\main\\jni', 'src\\main\\jniLibs'
+//            }
+//        }
+//    }
+
+//    // custom ndk build
+    sourceSets.main {
+        jniLibs.srcDir 'src/main/jniLibs' //set libs as .so's location instead of jni
+//        jniLibs.srcDir 'build/rustJniLibs/android' //set libs as .so's location instead of jni
+        jni.srcDirs = [] //disable automatic ndk-build call with auto-generated Android.mk file
+    }
+//    ndkVersion '23.1.7779620'
 }
 
 dependencies {
 
 
 //    implementation fileTree(dir: "$projectDir/../../../target/debug", include: ['*.so'])
-//    implementation fileTree(dir: "$projectDir/app/jniLibs", include: ['*.so'])
+//    implementation fileTree(dir: "$projectDir/app/build/rustJniLibs", include: ['*.so'])
 
     // add the shared library as a dependency jniLibs
 

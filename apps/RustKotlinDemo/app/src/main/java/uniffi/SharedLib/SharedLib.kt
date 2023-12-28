@@ -366,6 +366,10 @@ internal interface _UniFFILib : Library {
 
     fun uniffi_SharedLib_fn_func_add(`a`: Int,`b`: Int,_uniffi_out_err: RustCallStatus, 
     ): Int
+    fun uniffi_SharedLib_fn_func_index(`a`: Long,`b`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_SharedLib_fn_func_tokenize(`b`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
     fun ffi_SharedLib_rustbuffer_alloc(`size`: Int,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun ffi_SharedLib_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,_uniffi_out_err: RustCallStatus, 
@@ -375,6 +379,10 @@ internal interface _UniFFILib : Library {
     fun ffi_SharedLib_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Int,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_SharedLib_checksum_func_add(
+    ): Short
+    fun uniffi_SharedLib_checksum_func_index(
+    ): Short
+    fun uniffi_SharedLib_checksum_func_tokenize(
     ): Short
     fun ffi_SharedLib_uniffi_contract_version(
     ): Int
@@ -394,6 +402,12 @@ private fun uniffiCheckContractApiVersion(lib: _UniFFILib) {
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_SharedLib_checksum_func_add() != 39187.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_SharedLib_checksum_func_index() != 44339.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_SharedLib_checksum_func_tokenize() != 15337.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
@@ -418,6 +432,26 @@ public object FfiConverterInt: FfiConverter<Int, Int> {
 
     override fun write(value: Int, buf: ByteBuffer) {
         buf.putInt(value)
+    }
+}
+
+public object FfiConverterULong: FfiConverter<ULong, Long> {
+    override fun lift(value: Long): ULong {
+        return value.toULong()
+    }
+
+    override fun read(buf: ByteBuffer): ULong {
+        return lift(buf.getLong())
+    }
+
+    override fun lower(value: ULong): Long {
+        return value.toLong()
+    }
+
+    override fun allocationSize(value: ULong) = 8
+
+    override fun write(value: ULong, buf: ByteBuffer) {
+        buf.putLong(value.toLong())
     }
 }
 
@@ -467,10 +501,51 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
     }
 }
 
+
+
+
+public object FfiConverterSequenceULong: FfiConverterRustBuffer<List<ULong>> {
+    override fun read(buf: ByteBuffer): List<ULong> {
+        val len = buf.getInt()
+        return List<ULong>(len) {
+            FfiConverterULong.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<ULong>): Int {
+        val sizeForLength = 4
+        val sizeForItems = value.map { FfiConverterULong.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<ULong>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.forEach {
+            FfiConverterULong.write(it, buf)
+        }
+    }
+}
+
 fun `add`(`a`: Int, `b`: Int): Int {
     return FfiConverterInt.lift(
     rustCall() { _status ->
     _UniFFILib.INSTANCE.uniffi_SharedLib_fn_func_add(FfiConverterInt.lower(`a`),FfiConverterInt.lower(`b`),_status)
+})
+}
+
+
+fun `index`(`a`: ULong, `b`: String): String {
+    return FfiConverterString.lift(
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_SharedLib_fn_func_index(FfiConverterULong.lower(`a`),FfiConverterString.lower(`b`),_status)
+})
+}
+
+
+fun `tokenize`(`b`: String): List<ULong> {
+    return FfiConverterSequenceULong.lift(
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_SharedLib_fn_func_tokenize(FfiConverterString.lower(`b`),_status)
 })
 }
 
